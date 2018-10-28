@@ -10,30 +10,31 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.io.StringReader;
 
-public class KMeans 
+public class KMeans
 {
   // Data members
   private double [][] _data; // Array of all records in dataset
   private int [] _label;  // generated cluster labels
   private int [] _withLabel; // if original labels exist, load them to _withLabel
-                              // by comparing _label and _withLabel, we can compute accuracy. 
+                              // by comparing _label and _withLabel, we can compute accuracy.
                               // However, the accuracy function is not defined yet.
   private double [][] _centroids; // centroids: the center of clusters
   private int _nrows, _ndims; // the number of rows and dimensions
   private int _numClusters; // the number of clusters;
 
-  // Constructor; loads records from file <fileName>. 
+  private int error;
+  // Constructor; loads records from file <fileName>.
   // if labels do not exist, set labelname to null
-  public KMeans(String fileName, String labelname) 
+  public KMeans(String fileName, String labelname)
   {
     BufferedReader reader;
     CSVHelper csv = new CSVHelper();
-    ArrayList<String> values; 
+    ArrayList<String> values;
     // Creates a new KMeans object by reading in all of the records that are stored in a csv file
-    try 
+    try
     {
       reader = new BufferedReader(new FileReader(fileName));
-      
+
       // get the number of rows
       _nrows =1;
       values = csv.parseLine(reader);
@@ -58,7 +59,7 @@ public class KMeans
         }
         _data[nrow] = dv;
         nrow ++;
-      }      
+      }
       reader.close();
       System.out.println("loaded data");
 
@@ -68,25 +69,25 @@ public class KMeans
         _withLabel = new int[_nrows];
         int c=0;
         while ((values = csv.parseLine(reader))!=null){
-          _withLabel[c] = Integer.parseInt(values.get(0)); 
+          _withLabel[c] = Integer.parseInt(values.get(0));
         }
         reader.close();
         System.out.println("loaded labels");
-      } 
+      }
     }
-    catch(Exception e) 
+    catch(Exception e)
     {
       System.out.println( e );
-      System.exit( 0 ); 
+      System.exit( 0 );
     }
 
   }
-  
+
   // Perform k-means clustering with the specified number of clusters and
-  // Eucliden distance metric. 
+  // Eucliden distance metric.
   // niter is the maximum number of iterations. If it is set to -1, the kmeans iteration is only terminated by the convergence condition.
   // centroids are the initial centroids. It is optional. If set to null, the initial centroids will be generated randomly.
-  public void clustering(int numClusters, int niter, double [][] centroids) 
+  public void clustering(int numClusters, int niter, double [][] centroids)
   {
       _numClusters = numClusters;
       if (centroids !=null)
@@ -125,8 +126,8 @@ public class KMeans
         for (int i=0; i<_nrows; i++){
           _label[i] = closest(_data[i]);
         }
-        
-        // recompute centroids based on the assignments  
+
+        // recompute centroids based on the assignments
         c1 = updateCentroids();
         round ++;
         if ((niter >0 && round >=niter) || converge(_centroids, c1, threshold))
@@ -136,7 +137,7 @@ public class KMeans
       System.out.println("Clustering converges at round " + round);
   }
 
-  // find the closest centroid for the record v 
+  // find the closest centroid for the record v
   private int closest(double [] v){
     double mindist = dist(v, _centroids[0]);
     int label =0;
@@ -160,13 +161,13 @@ public class KMeans
     return Math.sqrt(sum);
   }
 
-  // according to the cluster labels, recompute the centroids 
+  // according to the cluster labels, recompute the centroids
   // the centroid is updated by averaging its members in the cluster.
   // this only applies to Euclidean distance as the similarity measure.
 
   private double [][] updateCentroids(){
     // initialize centroids and set to 0
-    double [][] newc = new double [_numClusters][]; //new centroids 
+    double [][] newc = new double [_numClusters][]; //new centroids
     int [] counts = new int[_numClusters]; // sizes of the clusters
 
     // intialize
@@ -191,7 +192,7 @@ public class KMeans
       for (int j=0; j<_ndims; j++){
         newc[i][j]/= counts[i];
       }
-    } 
+    }
 
     return newc;
   }
@@ -199,19 +200,19 @@ public class KMeans
   // check convergence condition
   // max{dist(c1[i], c2[i]), i=1..numClusters < threshold
   private boolean converge(double [][] c1, double [][] c2, double threshold){
-    // c1 and c2 are two sets of centroids 
+    // c1 and c2 are two sets of centroids
     double maxv = 0;
     for (int i=0; i< _numClusters; i++){
         double d= dist(c1[i], c2[i]);
         if (maxv<d)
             maxv = d;
-    } 
+    }
 
     if (maxv <threshold)
       return true;
     else
       return false;
-    
+
   }
   public double[][] getCentroids()
   {
@@ -240,17 +241,24 @@ public class KMeans
 
   }
 
+  private void calcAndPrintError() {
+	  for(int i = 0 ; i<_nrows ; i++) {
+		  error += dist(_centroids[_label[i]], _data[i]);
+	  }
+	  System.out.println(error);
+  }
 
-  public static void main( String[] astrArgs ) 
+
+  public static void main( String[] astrArgs )
   {
     /**
      * The code commented out here is just an example of how to use
      * the provided functions and constructors.
-     * 
+     *
      */
      KMeans KM = new KMeans( "data.csv", null );
      KM.clustering(2, 10, null); // 2 clusters, maximum 10 iterations
-     KM.printResults();
+     KM.calcAndPrintError();
 
      /** using CSVHelper to parse strings
      CSVHelper csv = new CSVHelper();
