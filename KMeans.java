@@ -42,7 +42,7 @@ public class KMeans
       while(reader.readLine()!=null)
         _nrows++;
       reader.close();
-      System.out.println(_nrows + " "+_ndims);
+      // System.out.println(_nrows + " "+_ndims);
 
       // initialize the _data variable
       _data = new double[_nrows][];
@@ -61,7 +61,7 @@ public class KMeans
         nrow ++;
       }
       reader.close();
-      System.out.println("loaded data");
+      // System.out.println("loaded data");
 
       if (labelname!=null){
         // load label file to _withLabel;
@@ -72,7 +72,7 @@ public class KMeans
           _withLabel[c] = Integer.parseInt(values.get(0));
         }
         reader.close();
-        System.out.println("loaded labels");
+        // System.out.println("loaded labels");
       }
     }
     catch(Exception e)
@@ -109,7 +109,7 @@ public class KMeans
           for (int j=0; j<_ndims; j++)
             _centroids[i][j] = _data[c][j];
         }
-        System.out.println("selected random centroids");
+        // System.out.println("selected random centroids");
 
       }
 
@@ -134,7 +134,7 @@ public class KMeans
           break;
       }
 
-      System.out.println("Clustering converges at round " + round);
+      // System.out.println("Clustering converges at round " + round);
   }
 
   // find the closest centroid for the record v
@@ -246,6 +246,7 @@ public class KMeans
   }
 
   private double calcAndPrintError() {
+	  _error=0;
 	  for(int i = 0 ; i<_nrows ; i++) {
 		  _error += dist(_centroids[_label[i]], _data[i]);
 	  }
@@ -260,21 +261,34 @@ public class KMeans
      * the provided functions and constructors.
      *
      */
-     KMeans KM = new KMeans( "data.csv", null );
+      KMeans KM = new KMeans( "/home/rohit/Documents/xdata-web/XDataGrading/src/data.csv", null );
      // KM.clustering(2, 10, null); // 2 clusters, maximum 10 iterations
-     double errors[KM.nrows()/5]
+      double errors[];
+     errors = new double[KM.nrows()/5];
      for (int i = 2;i<KM.nrows()/5 ;i++ ) {
        KM.clustering(i, 10, null);
        errors[i] = KM.calcAndPrintError();
+       System.out.println(errors[i]);
      }
      for(int delta = 50; delta > 1; delta/=2){
+    	 int w=0;
        for(int i = 3; i<KM.nrows()/5 - 1; i++){
          double slope1 = errors[i] - errors[i-1];
          double slope2 = errors[i+1] - errors[i];
-         if(slope1/slope2 > delta){
-           System.out.println("Optimum k is ", i);
+         if(Math.abs(slope1/slope2) > delta){
+           System.out.print("Optimum k is ");
+           System.out.println(i);
+           System.out.print("delta");
+           System.out.println(delta);
+           w=1;
+           break;
+//           System.out
          }
        }
+       if(w==1) {
+    	   break;
+       }
+       
      }
 
      /** using CSVHelper to parse strings
