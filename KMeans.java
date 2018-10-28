@@ -22,7 +22,7 @@ public class KMeans
   private int _nrows, _ndims; // the number of rows and dimensions
   private int _numClusters; // the number of clusters;
 
-  private int error;
+  private double _error;
   // Constructor; loads records from file <fileName>.
   // if labels do not exist, set labelname to null
   public KMeans(String fileName, String labelname)
@@ -228,6 +228,10 @@ public class KMeans
     return _nrows;
   }
 
+  public double error(){
+    return _error;
+  }
+
   public void printResults(){
       System.out.println("Label:");
      for (int i=0; i<_nrows; i++)
@@ -241,11 +245,11 @@ public class KMeans
 
   }
 
-  private void calcAndPrintError() {
+  private double calcAndPrintError() {
 	  for(int i = 0 ; i<_nrows ; i++) {
-		  error += dist(_centroids[_label[i]], _data[i]);
+		  _error += dist(_centroids[_label[i]], _data[i]);
 	  }
-	  System.out.println(error);
+	  return _error;
   }
 
 
@@ -257,8 +261,21 @@ public class KMeans
      *
      */
      KMeans KM = new KMeans( "data.csv", null );
-     KM.clustering(2, 10, null); // 2 clusters, maximum 10 iterations
-     KM.calcAndPrintError();
+     // KM.clustering(2, 10, null); // 2 clusters, maximum 10 iterations
+     double errors[KM.nrows()/5]
+     for (int i = 2;i<KM.nrows()/5 ;i++ ) {
+       KM.clustering(i, 10, null);
+       errors[i] = KM.calcAndPrintError();
+     }
+     for(int delta = 50; delta > 1; delta/=2){
+       for(int i = 3; i<KM.nrows()/5 - 1; i++){
+         double slope1 = errors[i] - errors[i-1];
+         double slope2 = errors[i+1] - errors[i];
+         if(slope1/slope2 > delta){
+           System.out.println("Optimum k is ", i);
+         }
+       }
+     }
 
      /** using CSVHelper to parse strings
      CSVHelper csv = new CSVHelper();
